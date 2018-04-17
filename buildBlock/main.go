@@ -8,32 +8,39 @@ import (
 )
 
 func main() {
-	j, _ := readJob("j1")
-	s, _ := readSubmit("s1")
+	j, _ := readJob("j2")
+	s, _ := readSubmit("s2")
 	// fmt.Println(j.toString(), s.toString())
 
 	cb := buildCoinbase(j.Coinbase1, j.Coinbase2, s.ExtraNonce1, s.ExtraNonce2)
-	merkleRoot := buildMerkleRootFromCoinbase(cb, j.MerkleBranches)
+	fmt.Printf("cb: %x\n\n", cb)
+
+	cbHash := sha256d(cb)
+	fmt.Printf("ch: %x\n\n", cbHash)
+
+	merkleRoot := buildMerkleRootFromCoinbase(cbHash, j.MerkleBranches)
+	fmt.Printf("mr: %x\n\n", merkleRoot)
 
 	time, _ := hex.DecodeString(s.NTime)
 	reverseBytes(time)
+	fmt.Printf("ti: %x\n\n", time)
 
 	bits, _ := hex.DecodeString(j.Bits)
 	reverseBytes(bits)
+	fmt.Printf("bi: %x\n\n", bits)
 
 	nonce, _ := hex.DecodeString(s.Nonce)
-	// reverseBytes(nonce)
+	reverseBytes(nonce)
+	fmt.Printf("no: %x\n\n", nonce)
 
 	header := buildBlockHeader(j.Version, j.PreviousBlockHash, merkleRoot, time, bits, nonce)
-
-	fmt.Println(hex.EncodeToString(merkleRoot))
-
-	fmt.Printf("%x\nlen=%v\n\n", header, len(header))
+	fmt.Printf("he: %x\nlen=%v\n\n", header, len(header))
 
 	hash := sha256d(header)
-	a := hex.EncodeToString(hash[:])
-	fmt.Println(a)
-
+	reverseBytes(hash)
+	fmt.Printf("ha: %x\n\n", hash)
+	// a := hex.EncodeToString(hash[:])
+	// fmt.Println(a)
 }
 
 // sha256d calculates hash(hash(b)) and returns the resulting bytes.
@@ -74,6 +81,7 @@ func buildMerkleRootFromCoinbase(coinbaseHash []byte, merkleBranches []string) [
 		hash := sha256d(concat)
 		acc = hash[:]
 	}
+	reverseBytes(acc)
 	return acc
 }
 
