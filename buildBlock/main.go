@@ -15,8 +15,7 @@ func main() {
 	// cb := buildCoinbase(j.Coinbase1, j.Coinbase2, s.ExtraNonce1, s.ExtraNonce2)
 	// merkleRoot := buildMerkleRootFromCoinbase(cb, j.MerkleBranches)
 	// header := buildBlockHeader(j.Version, j.PreviousBlockHash, merkleRoot, s.NTime, j.Bits, s.Nonce)
-
-	cb := []byte("b82c849c6abcd1ad17f4457333afc45723557348d2dda6974363253223b0f378")
+	cb, _ := hex.DecodeString("b82c849c6abcd1ad17f4457333afc45723557348d2dda6974363253223b0f378")
 	merkleBranches := []string{
 		"4ea2296eff2cab120ecaa8ea268f663de7b0129f9132ba02de3bde7d3341431f",
 		"39864fb58564307f69945596a9a8e188c256f09a3d67e17bba888e0ae2a99cba",
@@ -35,26 +34,20 @@ func main() {
 	nonce := make([]byte, 4)
 	binary.LittleEndian.PutUint32(nonce, 3814348197)
 
-	header := buildBlockHeader(536870912, "000000000000000002424db0163641940c9fd999ec897b412ce64e36d6ab7650", merkleRoot, string(time), string(bits), string(nonce))
+	fmt.Printf("time: %x, bits: %x, nonce: %x\n\n", time, bits, nonce)
+	fmt.Printf("time: %v, bits: %v, nonce: %v\n\n", hex.EncodeToString(time), hex.EncodeToString(bits), hex.EncodeToString(nonce))
 
-	s := hex.EncodeToString(header)
-	fmt.Println(s)
+	header := buildBlockHeader(536870912, "000000000000000002424db0163641940c9fd999ec897b412ce64e36d6ab7650", merkleRoot, time, bits, nonce)
+	fmt.Printf("%x\nlen=%v\n\n", header, len(header))
 
-	hash := sha256.Sum256(header)
+	hash := sha256d(header)
 	a := hex.EncodeToString(hash[:])
 	fmt.Println(a)
-	// h := DoubleHashB(cb)
-	// fmt.Printf("%x", h)
+
 }
 
-// HashB calculates hash(b) and returns the resulting bytes.
-func HashB(b []byte) []byte {
-	hash := sha256.Sum256(b)
-	return hash[:]
-}
-
-// DoubleHashB calculates hash(hash(b)) and returns the resulting bytes.
-func DoubleHashB(b []byte) []byte {
+// sha256d calculates hash(hash(b)) and returns the resulting bytes.
+func sha256d(b []byte) []byte {
 	first := sha256.Sum256(b)
 	second := sha256.Sum256(first[:])
 	return second[:]
@@ -88,43 +81,25 @@ func buildMerkleRootFromCoinbase(coinbaseHash []byte, merkleBranches []string) [
 	for i := 0; i < len(merkleBranches); i++ {
 		branch, _ := hex.DecodeString(merkleBranches[i])
 		concat := append(acc, branch...)
-		hash := DoubleHashB(concat)
+		hash := sha256d(concat)
 		acc = hash[:]
 	}
 	return acc
 }
 
-func buildBlockHeader(version uint32, previousBlockHash string, merkleRoot []byte, nTime string, nBits string, nonce string) []byte {
+func buildBlockHeader(version uint32, previousBlockHash string, merkleRoot []byte, time []byte, bits []byte, nonce []byte) []byte {
 	v := make([]byte, 4)
 	binary.LittleEndian.PutUint32(v, version)
 	p, _ := hex.DecodeString(previousBlockHash)
-	t, _ := hex.DecodeString(nTime)
-	b, _ := hex.DecodeString(nBits)
-	n, _ := hex.DecodeString(nonce)
 
 	reverseBytes(p)
-	reverseBytes(merkleRoot)
-	reverseBytes(t)
-	reverseBytes(b)
-	reverseBytes(n)
 
 	a := []byte{}
 	a = append(a, v...)
 	a = append(a, p...)
 	a = append(a, merkleRoot...)
-	a = append(a, t...)
-	a = append(a, b...)
-	a = append(a, n...)
+	a = append(a, time...)
+	a = append(a, bits...)
+	a = append(a, nonce...)
 	return a
 }
-
-/*
-const blockHeader = new BlockHeader({
-    version: Hex.fromInt(version),
-    previousBlockHash: Hex.fromRPCByteOrder(previousBlockHash),
-    merkleRoot: Hex.fromInternalByteOrder(merkleRoot),
-    time: new Hex(time),
-    bits: bitsHex,
-    nonce: Hex.fromRPCByteOrder(nonce)
-  })
-*/
