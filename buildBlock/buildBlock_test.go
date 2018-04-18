@@ -26,9 +26,9 @@ func TestReverseBytes(t *testing.T) {
 	initialBytes := []byte{1, 0, 0, 0, 1, 0, 0}
 	expectedBytes := []byte{0, 0, 1, 0, 0, 0, 1}
 
-	reverseBytes(initialBytes)
-	if !reflect.DeepEqual(initialBytes, expectedBytes) {
-		t.Errorf("Expected reversed bytes to be %v, got %v", expectedBytes, initialBytes)
+	reversedBytes := reverseBytes(initialBytes)
+	if !reflect.DeepEqual(reversedBytes, expectedBytes) {
+		t.Errorf("Expected reversed bytes to be %v, got %v", expectedBytes, reversedBytes)
 	}
 }
 

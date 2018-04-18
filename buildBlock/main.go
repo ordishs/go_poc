@@ -22,22 +22,22 @@ func main() {
 	fmt.Printf("mr: %x\n\n", merkleRoot)
 
 	time, _ := hex.DecodeString(s.NTime)
-	reverseBytes(time)
+	time = reverseBytes(time)
 	fmt.Printf("ti: %x\n\n", time)
 
 	bits, _ := hex.DecodeString(j.Bits)
-	reverseBytes(bits)
+	bits = reverseBytes(bits)
 	fmt.Printf("bi: %x\n\n", bits)
 
 	nonce, _ := hex.DecodeString(s.Nonce)
-	reverseBytes(nonce)
+	nonce = reverseBytes(nonce)
 	fmt.Printf("no: %x\n\n", nonce)
 
 	header := buildBlockHeader(j.Version, j.PreviousBlockHash, merkleRoot, time, bits, nonce)
 	fmt.Printf("he: %x\nlen=%v\n\n", header, len(header))
 
 	hash := sha256d(header)
-	reverseBytes(hash)
+	hash = reverseBytes(hash)
 	fmt.Printf("ha: %x\n\n", hash)
 	// a := hex.EncodeToString(hash[:])
 	// fmt.Println(a)
@@ -66,22 +66,25 @@ func buildCoinbase(coinbase1 string, coinbase2 string, extraNonce1 string, extra
 	return a
 }
 
-func reverseBytes(a []byte) {
+func reverseBytes(a []byte) []byte {
+	tmp := make([]byte, len(a))
+	copy(tmp, a)
+
 	for i, j := 0, len(a)-1; i < j; i, j = i+1, j-1 {
-		a[i], a[j] = a[j], a[i]
+		tmp[i], tmp[j] = tmp[j], tmp[i]
 	}
+	return tmp
 }
 
 func buildMerkleRootFromCoinbase(coinbaseHash []byte, merkleBranches []string) []byte {
-	acc := coinbaseHash
-	reverseBytes(acc)
+	acc := reverseBytes(coinbaseHash)
 	for i := 0; i < len(merkleBranches); i++ {
 		branch, _ := hex.DecodeString(merkleBranches[i])
 		concat := append(acc, branch...)
 		hash := sha256d(concat)
 		acc = hash[:]
 	}
-	reverseBytes(acc)
+	acc = reverseBytes(acc)
 	return acc
 }
 
@@ -90,7 +93,7 @@ func buildBlockHeader(version uint32, previousBlockHash string, merkleRoot []byt
 	binary.LittleEndian.PutUint32(v, version)
 	p, _ := hex.DecodeString(previousBlockHash)
 
-	reverseBytes(p)
+	p = reverseBytes(p)
 
 	a := []byte{}
 	a = append(a, v...)
