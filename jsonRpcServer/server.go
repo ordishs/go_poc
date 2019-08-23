@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -13,11 +12,32 @@ import (
 type Handler struct{}
 
 // Request comment
-type Request interface{}
+type Request struct {
+	// JobID             string   `json:"jobId"`
+	// Height            uint32   `json:"height"`
+	// Coin              string   `json:"coin"`
+	// WalletAddress     string   `json:"walletAddress"`
+	// TS                uint64   `json:"ts"`
+	PreviousBlockHash string   `json:"previousBlockHash"`
+	Coinbase1         string   `json:"coinbase1"`
+	Coinbase2         string   `json:"coinbase2"`
+	MerkleBranches    []string `json:"merkleBranches"`
+	Version           uint32   `json:"version"`
+	Bits              string   `json:"bits"`
+	Time              string   `json:"time"`
+	// CleanJob          bool     `json:"cleanJob"`
+	// Target            string   `json:"target"`
+	// Difficulty        float64  `json:"difficulty"`
+	// BlockValue        float64  `json:"blockValue"`
+	ExtraNonce1 string `json:"extraNonce1"`
+	ExtraNonce2 string `json:"extraNonce2"`
+	Nonce       string `json:"nonce"`
+}
 
 // Response comment
 type Response struct {
-	Message interface{} `json:"message"`
+	Accepted bool
+	Hash     string
 }
 
 // Hello is a comment
@@ -25,23 +45,14 @@ func (h *Handler) Hello(req Request, res *Response) (err error) {
 	// fmt.Printf("%+v\n", req)
 
 	// req is a map with keys of string and values of interface{}
-	a := req
-	b := a.(map[string]interface{}) // Cast to map[string]interface{}
-	c := b["firstName"]             // Get the value for the string key of "firstName" - returns an interface{}
-	d := c.(string)                 // Cast to a string
-	fmt.Printf("a is %T\nb is %T\nb is %T\nd is %T\n", a, b, c, d)
+	// a := req
+	// fmt.Printf("%+v", a)
+	// b := a.(map[string]interface{}) // Cast to map[string]interface{}
+	accepted, hash := handleBlock(req)
+	// fmt.Printf("b is %v\n", b)
 
-	firstName := req.(map[string]interface{})["firstName"].(string)
-	lastName := req.(map[string]interface{})["lastName"].(string)
-
-	fmt.Printf("%+v - %+v\n", firstName, lastName)
-
-	if firstName == "" || lastName == "" {
-		err = errors.New("A name must be specified")
-		return err
-	}
-
-	res.Message = "Hello " + firstName + " " + lastName
+	res.Accepted = accepted
+	res.Hash = hash
 	return nil
 }
 
